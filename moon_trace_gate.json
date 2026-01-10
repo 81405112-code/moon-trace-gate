@@ -1,0 +1,229 @@
+{
+  "story": {
+    "code": "moon-trace-gate",
+    "title": "月痕之門",
+    "description": "奇幻互動故事：你的選擇將決定世界的光與影。"
+  },
+  "nodes": [
+    {
+      "key": "start",
+      "title": "霧杉林的光",
+      "body": "霧杉林深處浮現藍白光點，泥土裡埋著一枚月形碎片。遠處傳來求救聲。",
+      "is_ending": false,
+      "bg": "stories/bg/mistwood.jpg"
+    },
+    {
+      "key": "fairy",
+      "title": "受傷的小精靈",
+      "body": "小精靈翅膀破裂，低聲說：『碎片會引來獵人…』它求你幫忙。",
+      "is_ending": false,
+      "bg": "stories/bg/fairy.jpg"
+    },
+    {
+      "key": "bandit",
+      "title": "山賊攔路",
+      "body": "山賊橫刀攔路要你交出碎片；另一人卻盯著你的影子發抖。",
+      "is_ending": false,
+      "bg": "stories/bg/bandit.jpg"
+    },
+    {
+      "key": "ruins",
+      "title": "古遺跡入口",
+      "body": "石門刻著月紋，缺了一塊核心。你手中的碎片微微共鳴。",
+      "is_ending": false,
+      "bg": "stories/bg/ruins.jpg"
+    },
+    {
+      "key": "lake",
+      "title": "鏡湖試煉",
+      "body": "鏡湖倒映出你『可能成為的樣子』，水面浮現謎語：力量、智慧、仁慈，你選哪個？",
+      "is_ending": false,
+      "bg": "stories/bg/lake.jpg"
+    },
+    {
+      "key": "tower",
+      "title": "魔塔門前",
+      "body": "魔塔封印低鳴。你感覺到：名聲能開路，法力也能硬闖。",
+      "is_ending": false,
+      "bg": "stories/bg/tower.jpg"
+    },
+    {
+      "key": "library",
+      "title": "禁書館",
+      "body": "禁書館的書在低語：真正的門不是通往力量，而是通往代價。",
+      "is_ending": false,
+      "bg": "stories/bg/library.jpg"
+    },
+    {
+      "key": "gate",
+      "title": "月痕之門",
+      "body": "月痕之門浮現。你只要一步，就能改寫世界——封印、開啟、或轉身離去。",
+      "is_ending": false,
+      "bg": "stories/bg/gate.jpg"
+    },
+    {
+      "key": "ending_light",
+      "title": "光之結局",
+      "body": "你封印了門。世界安穩，你失去力量卻留下傳說。",
+      "is_ending": true,
+      "bg": "stories/bg/ending_light.jpg"
+    },
+    {
+      "key": "ending_void",
+      "title": "虛無結局",
+      "body": "你開啟了門。虛無湧出，你得到力量，代價是世界失去顏色。",
+      "is_ending": true,
+      "bg": "stories/bg/ending_void.jpg"
+    },
+    {
+      "key": "ending_wander",
+      "title": "流浪結局",
+      "body": "你拒絕兩者，帶著碎片離開。故事沒有終點，只剩路。",
+      "is_ending": true,
+      "bg": "stories/bg/ending_wander.jpg"
+    }
+  ],
+  "choices": [
+    {
+      "from": "start",
+      "text": "撿起碎片",
+      "to": "fairy",
+      "order": 1,
+      "effect": { "shard": true, "mana": 1 }
+    },
+    {
+      "from": "start",
+      "text": "先往求救聲跑",
+      "to": "fairy",
+      "order": 2,
+      "effect": { "honor": 1 }
+    },
+
+    {
+      "from": "fairy",
+      "text": "替小精靈包紮",
+      "to": "bandit",
+      "order": 1,
+      "effect": { "honor": 1 }
+    },
+    {
+      "from": "fairy",
+      "text": "詢問碎片的來歷",
+      "to": "ruins",
+      "order": 2,
+      "effect": { "mana": 1 }
+    },
+
+    {
+      "from": "bandit",
+      "text": "用碎片的光嚇退他們",
+      "to": "ruins",
+      "order": 1,
+      "condition": { "shard": true },
+      "effect": { "mana": 1 }
+    },
+    {
+      "from": "bandit",
+      "text": "把碎片交出去換平安",
+      "to": "lake",
+      "order": 2,
+      "effect": { "shard": false, "honor": -1 }
+    },
+    {
+      "from": "bandit",
+      "text": "挺身保護路人",
+      "to": "ruins",
+      "order": 3,
+      "effect": { "honor": 2 }
+    },
+
+    {
+      "from": "ruins",
+      "text": "把碎片貼近石門",
+      "to": "tower",
+      "order": 1,
+      "condition": { "shard": true },
+      "effect": { "mana": 1 }
+    },
+    {
+      "from": "ruins",
+      "text": "不靠碎片，先繞去鏡湖",
+      "to": "lake",
+      "order": 2,
+      "effect": { "honor": 1 }
+    },
+
+    {
+      "from": "lake",
+      "text": "選擇仁慈（拒絕捷徑）",
+      "to": "library",
+      "order": 1,
+      "effect": { "honor": 1 }
+    },
+    {
+      "from": "lake",
+      "text": "選擇力量（接受代價）",
+      "to": "tower",
+      "order": 2,
+      "effect": { "mana": 1 }
+    },
+
+    {
+      "from": "tower",
+      "text": "用名聲請守衛讓路",
+      "to": "gate",
+      "order": 1,
+      "condition": { "honor_gte": 2 }
+    },
+    {
+      "from": "tower",
+      "text": "用法力硬闖封印",
+      "to": "gate",
+      "order": 2,
+      "condition": { "mana_gte": 2 },
+      "effect": { "mana": 1 }
+    },
+    {
+      "from": "tower",
+      "text": "轉往禁書館找答案",
+      "to": "library",
+      "order": 3
+    },
+
+    {
+      "from": "library",
+      "text": "抄下封印咒文",
+      "to": "gate",
+      "order": 1,
+      "effect": { "honor": 1 }
+    },
+    {
+      "from": "library",
+      "text": "偷看禁忌儀式",
+      "to": "gate",
+      "order": 2,
+      "effect": { "mana": 1, "honor": -1 }
+    },
+
+    {
+      "from": "gate",
+      "text": "封印之門（光之結局）",
+      "to": "ending_light",
+      "order": 1,
+      "condition": { "honor_gte": 2 }
+    },
+    {
+      "from": "gate",
+      "text": "開啟之門（虛無結局）",
+      "to": "ending_void",
+      "order": 2,
+      "condition": { "mana_gte": 3, "shard": true }
+    },
+    {
+      "from": "gate",
+      "text": "轉身離去（流浪結局）",
+      "to": "ending_wander",
+      "order": 3
+    }
+  ]
+}

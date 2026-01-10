@@ -1,0 +1,131 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>故事首頁</title>
+
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial;
+      color:#fff;
+      background:#000;
+      {% if home_bg %}
+      background-image: url("{% static home_bg %}");
+      {% endif %}
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height:100vh;
+    }
+
+    /* ✅ 這層一定會讓字可讀 */
+    .overlay{
+      min-height:100vh;
+      background: rgba(0,0,0,0.55);
+      padding: 26px 16px;
+    }
+
+    .wrap{ max-width: 980px; margin: 0 auto; }
+
+    .header{
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    h1{ margin:0; font-size:30px; letter-spacing:0.4px; }
+
+    .badge{
+      font-size:13px;
+      padding: 8px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 900px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .card{
+      background: rgba(20,20,24,0.72);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .title{ margin:0 0 6px; font-size:22px; font-weight:800; }
+    .desc{ margin:0 0 14px; opacity:0.92; line-height:1.65; }
+
+    .btn{
+      display:inline-block;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.12);
+      color:#fff;
+      text-decoration:none;
+      font-weight:800;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.18); }
+
+    /* ✅ Debug：讓你一眼知道有沒有抓到 home_bg */
+    .debug{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.75;
+      word-break: break-all;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay">
+    <div class="wrap">
+
+      <div class="header">
+        <h1>故事首頁</h1>
+        <div class="badge">
+          {% if user.is_authenticated %}
+            已登入：{{ user.username }}
+          {% else %}
+            尚未登入（點開始故事會要求登入）
+          {% endif %}
+        </div>
+      </div>
+
+      {% if stories %}
+        <div class="grid">
+          {% for s in stories %}
+            <div class="card">
+              <h2 class="title">{{ s.title }}</h2>
+              <p class="desc">{{ s.description }}</p>
+              <a class="btn" href="{% url 'stories:play' s.code %}">開始故事</a>
+              <div class="debug">cover_bg: {{ s.cover_bg }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card">
+          <h2 class="title">目前沒有故事</h2>
+          <p class="desc">先用 import_story 匯入故事後，這裡就會出現「開始故事」。</p>
+        </div>
+      {% endif %}
+
+      <div class="debug">home_bg: {{ home_bg }}</div>
+
+    </div>
+  </div>
+</body>
+</html>

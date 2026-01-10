@@ -1,0 +1,294 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ story.title }} - {{ node.title }}</title>
+
+  <!-- ✅ HTMX：局部更新，不整頁重載（音樂不中斷） -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial;
+      {% if node.bg %}
+      background-image: url("{% static node.bg %}?v=3");
+      {% else %}
+      background: #111;
+      {% endif %}
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #fff;
+      transition: background-image 0.25s ease-in-out;
+    }
+
+    .vignette{
+      min-height: 100vh;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.35) 100%);
+    }
+
+    .hud-top{
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-size: 14px;
+      color: #fff;
+      user-select: none;
+    }
+    .pill strong{ font-weight: 800; }
+
+    .vol{
+      width: 140px;
+      accent-color: #fff;
+      padding: 8px 10px;
+    }
+
+    /* 左下 UI box（真正內容在 _box.html） */
+    .box{
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      width: min(680px, calc(100vw - 28px));
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+      z-index: 30;
+
+      background: rgba(10, 10, 14, 0.68);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.45);
+    }
+
+    .title{
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .story{
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .node-title{
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .node-body{
+      margin: 8px 0 10px;
+      line-height: 1.65;
+      font-size: 15px;
+      opacity: 0.95;
+      white-space: pre-wrap;
+    }
+
+    hr{
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      margin: 10px 0;
+    }
+
+    .choices{
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-card{
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 10px;
+    }
+
+    .choice-card.disabled{
+      opacity: 0.55;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .choice-btn{
+      width: 100%;
+      text-align: left;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .choice-btn:hover{
+      border-color: rgba(255,255,255,0.30);
+      background: rgba(0,0,0,0.33);
+    }
+
+    .choice-btn:disabled{
+      cursor: not-allowed;
+      background: rgba(0,0,0,0.20);
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-size: 12.5px;
+      opacity: 0.85;
+    }
+    .hint.bad{ color: #ffb3b3; opacity: 0.95; }
+
+    .ending{
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .restart-btn{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .restart-btn:hover{
+      background: rgba(255,255,255,0.16);
+    }
+
+    @media (max-width: 520px){
+      .node-title{ font-size: 17px; }
+      .node-body{ font-size: 15px; }
+      .choice-btn{ font-size: 15px; }
+      .vol{ width: 120px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="vignette">
+
+    <!-- ✅ 背景音樂（整頁不重載就不中斷） -->
+    <audio id="bgm" loop>
+      <source src="{% static 'stories/bgm/main.mp3' %}" type="audio/mpeg">
+    </audio>
+
+    <!-- 左上 HUD（含音樂控制） -->
+    <div class="hud-top">
+      <div class="pill">📖 {{ story.title }}</div>
+
+      <div class="pill">
+        月痕碎片：
+        {% if vars.shard %}
+          <strong>✅</strong>
+        {% else %}
+          <strong>❌</strong>
+        {% endif %}
+      </div>
+
+      <div class="pill">法力：<strong>{{ vars.mana|default:0 }}</strong></div>
+      <div class="pill">名聲：<strong>{{ vars.honor|default:0 }}</strong></div>
+
+      <button id="musicToggle" class="pill" type="button">🔇 音樂</button>
+      <input id="musicVolume" class="pill vol" type="range" min="0" max="100" value="35" />
+    </div>
+
+    <!-- ✅ 左下 box：初次載入 include；之後由 HTMX 替換 -->
+    {% include "stories/_box.html" %}
+
+  </div>
+
+  <script>
+    /* ===== 音樂控制 ===== */
+    const bgm = document.getElementById("bgm");
+    const btn = document.getElementById("musicToggle");
+    const vol = document.getElementById("musicVolume");
+
+    const savedMuted = localStorage.getItem("bgm_muted");
+    const savedVol = localStorage.getItem("bgm_volume");
+
+    if (savedVol !== null) vol.value = savedVol;
+    bgm.volume = (parseInt(vol.value, 10) || 35) / 100;
+
+    if (savedMuted === "1") {
+      bgm.muted = true;
+      btn.textContent = "🔇 音樂";
+    } else {
+      bgm.muted = false;
+      btn.textContent = "🔊 音樂";
+    }
+
+    async function tryPlay() {
+      try { await bgm.play(); } catch (e) {}
+    }
+    tryPlay();
+
+    window.addEventListener("click", () => {
+      if (!bgm.muted && bgm.paused) bgm.play().catch(()=>{});
+    }, { once: true });
+
+    vol.addEventListener("input", () => {
+      bgm.volume = (parseInt(vol.value, 10) || 0) / 100;
+      localStorage.setItem("bgm_volume", vol.value);
+    });
+
+    btn.addEventListener("click", async () => {
+      bgm.muted = !bgm.muted;
+      localStorage.setItem("bgm_muted", bgm.muted ? "1" : "0");
+      btn.textContent = bgm.muted ? "🔇 音樂" : "🔊 音樂";
+      if (!bgm.muted) { try { await bgm.play(); } catch(e) {} }
+    });
+
+    /* ===== 背景切換：從新的 ui-box 讀 data-bg ===== */
+    function applyBgFromBox() {
+        const marker = document.querySelector("#ui-box #bg-marker");
+         if (!marker) return;
+        const url = marker.getAttribute("data-bg");
+        if (url) document.body.style.backgroundImage = `url('${url}')`;
+}
+
+applyBgFromBox();
+
+document.body.addEventListener("htmx:afterSwap", (evt) => {
+  if (evt.detail && evt.detail.target && evt.detail.target.id === "ui-box") {
+    applyBgFromBox();
+  }
+});
+
+
+    // 第一次載入
+    applyBgFromBox();
+
+    // 每次 HTMX 替換完 ui-box 後更新背景
+    document.body.addEventListener("htmx:afterSwap", (evt) => {
+      if (evt.detail && evt.detail.target && evt.detail.target.id === "ui-box") {
+        applyBgFromBox();
+      }
+    });
+  </script>
+</body>
+</html>

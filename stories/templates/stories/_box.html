@@ -1,0 +1,66 @@
+{% load static %}
+
+<div id="ui-box" class="box">
+  <div id="bg-marker" data-bg="{% if node.bg %}{% static node.bg %}{% endif %}" style="display:none;"></div>
+
+  <div class="title">
+    <h2 class="node-title">{{ node.title }}</h2>
+    <span class="story">{{ story.description }}</span>
+  </div>
+
+  <div class="node-body">{{ node.body }}</div>
+
+  <hr>
+
+  <div style="font-weight:800; margin-bottom:8px;">選項</div>
+
+  <div class="choices">
+    {% for row in choices %}
+      <div class="choice-card {% if not row.ok %}disabled{% endif %}">
+        {% if row.ok %}
+          <!-- ✅ 有 hx-post + 也有 method/action（htmx 掛了也能正常送出） -->
+          <form
+            method="post"
+            action="{% url 'stories:choose' row.choice.id %}"
+            hx-post="{% url 'stories:choose' row.choice.id %}"
+            hx-target="#ui-box"
+            hx-swap="outerHTML"
+          >
+            {% csrf_token %}
+            <button class="choice-btn" type="submit" title="{{ row.hint }}">
+              {{ row.choice.text }}
+            </button>
+          </form>
+
+          {% if row.hint %}<div class="hint">{{ row.hint }}</div>{% endif %}
+        {% else %}
+          <button class="choice-btn" type="button" disabled title="{{ row.hint }}">
+            {{ row.choice.text }}
+          </button>
+          {% if row.hint %}
+            <div class="hint bad">{{ row.hint }}</div>
+          {% else %}
+            <div class="hint bad">條件不足</div>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if node.is_ending %}
+    <hr>
+    <div class="ending"><strong>（結局）</strong></div>
+
+    <!-- ✅ restart 也加 fallback -->
+    <form
+      method="post"
+      action="{% url 'stories:restart' story.code %}"
+      hx-post="{% url 'stories:restart' story.code %}"
+      hx-target="#ui-box"
+      hx-swap="outerHTML"
+    >
+      {% csrf_token %}
+      <button class="restart-btn" type="submit">重新開始</button>
+    </form>
+  {% endif %}
+</div>
